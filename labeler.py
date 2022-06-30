@@ -193,3 +193,15 @@ def getBuyLocs(max_mins, values, max_swing):
                     last_dwn = -1
     
     return buy_locs
+
+def getLabelsQuick(data, short=True, thresh=0.4):
+
+    locs = [ 0 for i in range(max(data.shape)) ]
+    thres = 1 + thresh / 100
+
+    for i in range(1, max(data.shape)):
+        delta = data[i - 1, 2] / data[i, 3] if short else data[i, 2] / data[i - 1, 3]
+        if delta >= thres:
+            locs[i - 1] = 1
+    
+    return locs
