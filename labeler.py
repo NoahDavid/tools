@@ -205,3 +205,53 @@ def getLabelsQuick(data, short=True, thresh=0.4):
             locs[i - 1] = 1
     
     return locs
+
+def getHeikenLabels(data, short=True):
+
+    leng = max(data.shape)
+
+    heikens = np.zeros((leng, 4))
+
+    # Open, high, low, close.
+
+    heikens[0, :] = data[0, 1:5]
+
+    for i in range(1, leng):
+        o = heikens[i - 1, 0]
+        h = heikens[i - 1, 1]
+        l = heikens[i - 1, 2]
+        c = heikens[i - 1, 3]
+
+        oc = data[i, 1]
+        hc = data[i, 2]
+        lc = data[i, 3]
+        cc = data[i, 4]
+
+        heikens[i, 0] = (o + c) / 2
+        heikens[i, 3] = (oc + hc + lc + cc) / 4
+        heikens[i, 1] = max([ heikens[i, 3], heikens[i, 0], data[i, 2] ])
+        heikens[i, 2] = min([ heikens[i, 3], heikens[i, 0], data[i, 3] ])
+
+    ## Labeling:
+
+    locs = np.zeros((leng, ))
+
+    # Parameters:
+    sl = 1 - 0.1 / 100
+    tp = 1 + 0.1 / 100
+
+    for i in range(1, leng):
+        # Check previous, and current. Mark previous.
+        op = heikens[i - 1, 0]
+        cp = heikens[i - 1, 3]
+        o = heikens[i, 0]
+        h = heikens[i, 1]
+        l = heikens[i, 2]
+        c = heikens[i, 3]
+
+        a = (o + c) / 2
+
+        if cp > op and c > o and l / o > sl and h / a > tp:
+            locs[i - 1] = 1
+    
+    return locs, heikens
